@@ -135,6 +135,25 @@ class PythonObjectTest {
     }
 
     @Test
+    void overrideInheritedAttrsWithNull() throws Exception {
+        fooType.set("color", new PythonString("green"));
+        foo.set("color", new PythonString("orange"));
+        barType.set("color", new PythonString("pink"));
+        bar.set("color", new PythonString("blue"));
+
+        assertEqualsPyStr("green",  fooType.get("color"));
+        assertEqualsPyStr("orange", foo.get("color"));
+        assertEqualsPyStr("pink",   barType.get("color"));
+        assertEqualsPyStr("blue",   bar.get("color"));
+
+        fooType.set("color", new PythonString("purple"));
+        assertEqualsPyStr("purple", fooType.get("color"));
+        assertEqualsPyStr("orange", foo.get("color"));
+        assertEqualsPyStr("pink",   barType.get("color"));
+        assertEqualsPyStr("blue",   bar.get("color"));
+    }
+
+    @Test
     void overrideInheritedAttrsInInstance() throws Exception {
         // Equivalent Python:
         //

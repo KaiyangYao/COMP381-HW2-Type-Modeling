@@ -51,7 +51,9 @@ public class PythonObject {
      * result (i.e. it remembers the list buildMRO() returned and keeps returning it).
      */
     protected List<PythonObject> buildMRO() {
-        throw new UnsupportedOperationException("not implemented yet");
+        List<PythonObject> attributes = type.buildMRO();
+        attributes.add(0, this);
+        return attributes;
     }
 
     /**
@@ -62,7 +64,13 @@ public class PythonObject {
      * @throws PythonAttributeException When there is no attribute on this object with that name.
      */
     public final PythonObject get(String attrName) throws PythonAttributeException {
-        throw new UnsupportedOperationException("not implemented yet");
+        for (PythonObject obj: getMRO()) {
+            if (obj.attrs.containsKey(attrName)) {
+                return obj.attrs.get(attrName);
+            }
+        }
+
+        throw new PythonAttributeException(this, attrName);
     }
 
     /**
@@ -74,7 +82,7 @@ public class PythonObject {
      * @param value Its new value
      */
     public final void set(String attrName, PythonObject value) {
-        throw new UnsupportedOperationException("not implemented yet");
+        attrs.put(attrName, value);
     }
 
     @Override
