@@ -6,7 +6,6 @@ from tests.helpers import TypeTest
 import unittest
 
 
-@unittest.skip('This is a bonus problem.')
 class TestConstructorTypeChecking(TypeTest):
     def test_00_object_instantiation_static_type_is_the_instantiated_type(self):
         # new Point()  ← static type is Point
