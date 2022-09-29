@@ -164,6 +164,13 @@ class JavaNullType(JavaType):
     """
     def __init__(self):
         super().__init__("null")
+        self.is_object_type = True
+
+    def is_subtype_of(self, other):
+        return other.is_subtype_of(JavaBuiltInTypes.OBJECT)
+
+    def method_named(self, name):
+        raise NoSuchJavaMethod("Cannot invoke method {0}() on null".format(name))
 
 
 class JavaTypeError(Exception):
