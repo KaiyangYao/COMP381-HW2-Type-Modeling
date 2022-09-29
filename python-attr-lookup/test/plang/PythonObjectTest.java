@@ -9,12 +9,15 @@ import java.util.Collections;
 import static org.junit.jupiter.api.Assertions.*;
 
 class PythonObjectTest {
-
+    /**
+     * fooType <- barType
+     *    ↑          ↑
+     *   foo        bar
+     * */
     private PythonType fooType;
     private PythonType barType;
     private PythonObject foo;
     private PythonObject bar;
-
     /**
      * Equivalent Python:
      *
@@ -136,21 +139,22 @@ class PythonObjectTest {
 
     @Test
     void overrideInheritedAttrsWithNull() throws Exception {
+        // Equivalent Python:
+        //
+        //   Foo.color = "green"
+        //   foo.color = null
+        //   Bar.color = null
+        //   bar.color = "red"
+
         fooType.set("color", new PythonString("green"));
-        foo.set("color", new PythonString("orange"));
-        barType.set("color", new PythonString("pink"));
-        bar.set("color", new PythonString("blue"));
+        foo.set("color", null);
+        barType.set("color", null);  // This will override the color in fooType
+        bar.set("color", new PythonString("red"));
 
-        assertEqualsPyStr("green",  fooType.get("color"));
-        assertEqualsPyStr("orange", foo.get("color"));
-        assertEqualsPyStr("pink",   barType.get("color"));
-        assertEqualsPyStr("blue",   bar.get("color"));
-
-        fooType.set("color", new PythonString("purple"));
-        assertEqualsPyStr("purple", fooType.get("color"));
-        assertEqualsPyStr("orange", foo.get("color"));
-        assertEqualsPyStr("pink",   barType.get("color"));
-        assertEqualsPyStr("blue",   bar.get("color"));
+        assertEqualsPyStr("green",   fooType.get("color"));
+        assertEqualsPyStr(null,      foo.get("color"));
+        assertEqualsPyStr(null,      barType.get("color"));
+        assertEqualsPyStr("red",     bar.get("color"));
     }
 
     @Test
