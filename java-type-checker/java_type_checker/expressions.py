@@ -39,6 +39,9 @@ class JavaVariable(JavaExpression):
         self.name = name                    #: The name of the variable (str)
         self.declared_type = declared_type  #: The declared type of the variable (JavaType)
 
+    def static_type(self):
+        return self.declared_type
+
 
 class JavaLiteral(JavaExpression):
     """A literal value entered in the code, e.g. `5` in the expression `x + 5`.
@@ -47,12 +50,18 @@ class JavaLiteral(JavaExpression):
         self.value = value  #: The literal value, as a string
         self.type = type    #: The type of the literal (JavaType)
 
+    def static_type(self):
+        return self.type
+
 
 class JavaNullLiteral(JavaLiteral):
     """The literal value `null` in Java code.
     """
     def __init__(self):
         super().__init__("null", JavaBuiltInTypes.NULL)
+
+    def static_type(self):
+        return JavaBuiltInTypes.NULL
 
 
 class JavaAssignment(JavaExpression):
@@ -65,6 +74,9 @@ class JavaAssignment(JavaExpression):
     def __init__(self, lhs, rhs):
         self.lhs = lhs
         self.rhs = rhs
+
+    def static_type(self):
+        return self.lhs.static_type()
 
 
 class JavaMethodCall(JavaExpression):
@@ -87,6 +99,9 @@ class JavaMethodCall(JavaExpression):
         self.receiver = receiver
         self.method_name = method_name
         self.args = args
+
+    def static_type(self):
+        return self.receiver.static_type().method_named(self.method_name).return_type
 
 
 class JavaConstructorCall(JavaExpression):
