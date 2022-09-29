@@ -128,7 +128,7 @@ class JavaMethodCall(JavaExpression):
         # This will handle the NoSuchJavaMethod exception
         method = self.receiver.static_type().method_named(self.method_name)
 
-        # JavaTypeMismatchError
+        # JavaArgumentCountError
         if len(method.parameter_types) != len(self.args):
             raise JavaArgumentCountError(
                 "Wrong number of arguments for {0}.{1}(): expected {2}, got {3}".format(
@@ -178,7 +178,7 @@ class JavaConstructorCall(JavaExpression):
 
         parameter_types = self.instantiated_type.constructor.parameter_types  # shorten the name
 
-        # JavaTypeMismatchError
+        # JavaArgumentCountError
         if len(parameter_types) != len(self.args):
             raise JavaArgumentCountError(
                 "Wrong number of arguments for {0} constructor: expected {1}, got {2}".format(
