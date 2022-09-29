@@ -168,6 +168,39 @@ class JavaConstructorCall(JavaExpression):
         self.instantiated_type = instantiated_type
         self.args = args
 
+    def static_type(self):
+        return self.instantiated_type
+
+    def check_types(self):
+        for arg in self.args:
+            arg.check_types()
+
+        # JavaIllegalInstantiationError
+        if not self.instantiated_type.is_subtype_of(JavaBuiltInTypes.OBJECT):
+            raise JavaIllegalInstantiationError("Type {0} is not instantiable".format(self.instantiated_type.name))
+
+        # shorten the name
+        parameter_types = self.instantiated_type.constructor.parameter_types
+
+        # JavaTypeMismatchError
+        if len(parameter_types) != len(self.args):
+            raise JavaArgumentCountError(
+                "Wrong number of arguments for {0} constructor: expected {1}, got {2}".format(
+                    self.instantiated_type.name, len(self.instantiated_type.constructor.parameter_types), len(self.args)
+                )
+            )
+
+        # JavaTypeMismatchError
+        for i in range(len(parameter_types)):
+            given_type = self.args[i].static_type()
+            expected_type = parameter_types[i]
+            if not given_type.is_subtype_of(expected_type):
+                raise JavaTypeMismatchError(
+                    "{0} constructor expects arguments of type {1}, but got {2}".format(
+                        self.instantiated_type.name, _names(parameter_types), _names(self.args)
+                    )
+                )
+
 
 class JavaTypeMismatchError(JavaTypeError):
     """Indicates that one or more expressions do not evaluate to the correct type.
