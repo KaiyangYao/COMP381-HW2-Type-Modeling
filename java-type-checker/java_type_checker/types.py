@@ -155,6 +155,9 @@ class JavaVoidType(JavaType):
     def __init__(self):
         super().__init__("void")
 
+    def is_subtype_of(self, other):
+        return other == self
+
 
 class JavaNullType(JavaType):
     """The type of the value `null` in Java.

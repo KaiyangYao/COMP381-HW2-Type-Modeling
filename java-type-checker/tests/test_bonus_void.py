@@ -6,7 +6,6 @@ from tests.helpers import TypeTest
 import unittest
 
 
-@unittest.skip('This is a bonus problem.')
 class TestVoid(TypeTest):
     def test_00_void_is_not_object_type(self):
         self.assertEqual(False, JavaBuiltInTypes.VOID.is_object_type)
