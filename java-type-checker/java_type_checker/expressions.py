@@ -137,16 +137,13 @@ class JavaMethodCall(JavaExpression):
             )
 
         # JavaTypeMismatchError
-        for i in range(len(method.parameter_types)):
-            given_type = self.args[i].static_type()
-            expected_type = method.parameter_types[i]
-            if not given_type.is_subtype_of(expected_type):
-                raise JavaTypeMismatchError(
-                    "{0}.{1}() expects arguments of type {2}, but got {3}".format(
-                        self.receiver.static_type().name, self.method_name, _names(method.parameter_types),
-                        _names(self.args)
-                    )
+        if not check_argument_match(self.args, method.parameter_types):
+            raise JavaTypeMismatchError(
+                "{0}.{1}() expects arguments of type {2}, but got {3}".format(
+                    self.receiver.static_type().name, self.method_name, _names(method.parameter_types),
+                    _names(self.args)
                 )
+            )
 
 
 class JavaConstructorCall(JavaExpression):
@@ -179,8 +176,7 @@ class JavaConstructorCall(JavaExpression):
         if not self.instantiated_type.is_subtype_of(JavaBuiltInTypes.OBJECT):
             raise JavaIllegalInstantiationError("Type {0} is not instantiable".format(self.instantiated_type.name))
 
-        # shorten the name
-        parameter_types = self.instantiated_type.constructor.parameter_types
+        parameter_types = self.instantiated_type.constructor.parameter_types  # shorten the name
 
         # JavaTypeMismatchError
         if len(parameter_types) != len(self.args):
@@ -191,15 +187,12 @@ class JavaConstructorCall(JavaExpression):
             )
 
         # JavaTypeMismatchError
-        for i in range(len(parameter_types)):
-            given_type = self.args[i].static_type()
-            expected_type = parameter_types[i]
-            if not given_type.is_subtype_of(expected_type):
-                raise JavaTypeMismatchError(
-                    "{0} constructor expects arguments of type {1}, but got {2}".format(
-                        self.instantiated_type.name, _names(parameter_types), _names(self.args)
-                    )
+        if not check_argument_match(self.args, parameter_types):
+            raise JavaTypeMismatchError(
+                "{0} constructor expects arguments of type {1}, but got {2}".format(
+                    self.instantiated_type.name, _names(parameter_types), _names(self.args)
                 )
+            )
 
 
 class JavaTypeMismatchError(JavaTypeError):
@@ -218,6 +211,17 @@ class JavaIllegalInstantiationError(JavaTypeError):
     """Raised in response to `new Foo()` where `Foo` is not an instantiable type.
     """
     pass
+
+
+def check_argument_match(given_expr_list, expected_type_list):
+    """Helper for checking if all the arguments matches the type
+    """
+    for i in range(len(expected_type_list)):
+        given_type = given_expr_list[i].static_type()
+        expected_type = expected_type_list[i]
+        if not given_type.is_subtype_of(expected_type):
+            return False
+    return True
 
 
 def _names(named_things):
