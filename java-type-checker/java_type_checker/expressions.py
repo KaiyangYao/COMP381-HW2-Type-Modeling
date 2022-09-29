@@ -42,6 +42,9 @@ class JavaVariable(JavaExpression):
     def static_type(self):
         return self.declared_type
 
+    def check_types(self):
+        pass
+
 
 class JavaLiteral(JavaExpression):
     """A literal value entered in the code, e.g. `5` in the expression `x + 5`.
@@ -52,6 +55,9 @@ class JavaLiteral(JavaExpression):
 
     def static_type(self):
         return self.type
+
+    def check_types(self):
+        pass
 
 
 class JavaNullLiteral(JavaLiteral):
@@ -78,6 +84,17 @@ class JavaAssignment(JavaExpression):
     def static_type(self):
         return self.lhs.static_type()
 
+    def check_types(self):
+        self.lhs.check_types()
+        self.rhs.check_types()
+        lhs_type = self.lhs.static_type()
+        rhs_type = self.rhs.static_type()
+
+        if not rhs_type.is_subtype_of(lhs_type):
+            raise JavaTypeMismatchError("Cannot assign {0} to variable {1} of type {2}".format(
+                rhs_type.name, self.lhs.name, lhs_type.name
+            ))
+
 
 class JavaMethodCall(JavaExpression):
     """A Java method invocation.
@@ -102,6 +119,34 @@ class JavaMethodCall(JavaExpression):
 
     def static_type(self):
         return self.receiver.static_type().method_named(self.method_name).return_type
+
+    def check_types(self):
+        self.receiver.check_types()
+        for arg in self.args:
+            arg.check_types()
+
+        # This will handle the NoSuchJavaMethod exception
+        method = self.receiver.static_type().method_named(self.method_name)
+
+        # JavaTypeMismatchError
+        if len(method.parameter_types) != len(self.args):
+            raise JavaArgumentCountError(
+                "Wrong number of arguments for {0}.{1}(): expected {2}, got {3}".format(
+                    self.receiver.static_type().name, self.method_name, len(method.parameter_types), len(self.args)
+                )
+            )
+
+        # JavaTypeMismatchError
+        for i in range(len(method.parameter_types)):
+            given_type = self.args[i].static_type()
+            expected_type = method.parameter_types[i]
+            if not given_type.is_subtype_of(expected_type):
+                raise JavaTypeMismatchError(
+                    "{0}.{1}() expects arguments of type {2}, but got {3}".format(
+                        self.receiver.static_type().name, self.method_name, _names(method.parameter_types),
+                        _names(self.args)
+                    )
+                )
 
 
 class JavaConstructorCall(JavaExpression):
@@ -145,4 +190,6 @@ class JavaIllegalInstantiationError(JavaTypeError):
 def _names(named_things):
     """Helper for formatting pretty error messages
     """
-    return "(" + ", ".join([e.name for e in named_things]) + ")"
+    return "(" + ", ".join(
+        [e.static_type().name if isinstance(e, JavaExpression) else e.name for e in named_things]
+    ) + ")"
